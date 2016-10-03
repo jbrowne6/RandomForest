@@ -57,8 +57,7 @@ c     main program.
       call zerv(nodestart,nrnodes)
       call zerv(nodepop,nrnodes)
       call zermr(classpop,nclass,nrnodes)
-c delete this sample print
-c      print *, "hello"
+
       do j=1,nclass
          classpop(j, 1) = tclasspop(j)
       end do
@@ -90,8 +89,6 @@ c     If the node is terminal, move on.  Otherwise, split.
             nodestatus(kbuild) = -1
             goto 30
          else
-c            print *, kbuild
-c delete
             bestvar(kbuild) = msplit
             iv(msplit) = 1
             if (decsplit .lt. 0.0) decsplit = 0.0
@@ -152,8 +149,7 @@ c     check on nodestatus
          if (ncur.ge.nrnodes) goto 50
  30   continue
  50   continue
-c delete
-c      print *, " "
+
       ndbigtree = nrnodes
       do k=nrnodes, 1, -1
          if (nodestatus(k) .eq. 0) ndbigtree = ndbigtree - 1

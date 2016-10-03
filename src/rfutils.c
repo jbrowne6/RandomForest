@@ -13,7 +13,7 @@
 *******************************************************************/
 #include <R.h>
 #include "rf.h"
-/**/
+
 
 void zeroInt(int *x, int length) {
     memset(x, 0, length * sizeof(int));
@@ -29,8 +29,7 @@ void createClass(double *x, int realN, int totalN, int mdim) {
     for (i = realN; i < totalN; ++i) {
         for (j = 0; j < mdim; ++j) {
             k = (int) (unif_rand() * realN);
-            Rprintf("I am creating a class");
-			x[j + i * mdim] = x[j + k * mdim];
+            x[j + i * mdim] = x[j + k * mdim];
         }
     }
 }
@@ -54,19 +53,19 @@ void normClassWt(int *cl, const int nsample, const int nclass,
     }
 }
 
-void randx(double *x, const int mdim, const int nsample, const float percent_to_change){
+void randx(double *x, const int mdim, const int nsample, const int rerf){
 		int m,n;
+		double rerf_p = (double) rerf / 100;
 
 		for (n = 0; n < nsample; n++){
-				for (m = 0; m < mdim; m++){
-						if (unif_rand() < percent_to_change){
+				for (m=0; m<mdim; m++){
+						if (unif_rand() < rerf_p){
 								x[n*mdim+m] = x[n*mdim+m]*(unif_rand()*2-1);
 						}
-
 				}
-
 		}
 }
+
 void makeA(double *x, const int mdim, const int nsample, int *cat, int *a,
            int *b) {
     /* makeA() constructs the mdim by nsample integer array a.  For each
@@ -106,10 +105,6 @@ void makeA(double *x, const int mdim, const int nsample, int *cat, int *a,
                 a[i + j*mdim] = (int) x[i + j * mdim];
         }
     }
-/*Rprintf("\n\n");
-        for (j=0; j < (nsample-1)*mdim; ++j){
-		Rprintf("%d ", a[j]);}	//print a to screen.  delete.	
- */  //The above a print only happens once after a is created. 
     Free(index);
     Free(v);
 }
@@ -121,7 +116,7 @@ void modA(int *a, int *nuse, const int nsample, const int mdim,
 
     *nuse = 0;
     for (i = 0; i < nsample; ++i) if (jin[i]) (*nuse)++;
-Rprintf("using %d samples\n", *nuse);
+
     for (i = 0; i < mdim; ++i) {
       k = 0;
       nt = 0;
@@ -144,12 +139,7 @@ Rprintf("using %d samples\n", *nuse);
           }
       }
     }
-//delete following two lines which print a
-//this print happens ever time a tree is made.
- /*   Rprintf("\n\n");
-    for (j = 0; j < (nsample-1) *mdim; ++j)
-        Rprintf("%d ", a[j]);
-  */  if (maxcat > 1) {
+    if (maxcat > 1) {
         k = 0;
         nt = 0;
         for (i = 0; i < nsample; ++i) {
@@ -167,10 +157,10 @@ Rprintf("using %d samples\n", *nuse);
             }
             nt++;
             if (nt >= *nuse) break;
-       
+        }
     }
 }
-}
+
 void Xtranslate(double *x, int mdim, int nrnodes, int nsample,
 		int *bestvar, int *bestsplit, int *bestsplitnext,
 		double *xbestsplit, int *nodestatus, int *cat, int treeSize) {

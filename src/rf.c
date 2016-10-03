@@ -259,12 +259,17 @@ classRF (double *x, int *dimx, int *cl, int *ncl, int *cat, int *maxcat,
     }
 
   memcpy (randomize_x, x, mdim * nsample * sizeof (double));	//added for randomerForest
-  if (rerf > 0) randx(x, mdim, nsample, rerf);	//added for randomerForest
+  if (rerf == 0){
   makeA (x, mdim, nsample, cat, at, b);	//moved for randomerForest
+  }
   idxByNnode = 0;
   idxByNsample = 0;
   for (jb = 0; jb < Ntree; jb++)
     {
+if (rerf > 0){
+		randx(x, mdim, nsample, rerf);	//added for randomerForest
+  makeA (x, mdim, nsample, cat, at, b);	//moved for randomerForest
+}
       /* Do we need to simulate data for the second class? */
       if (addClass)
 	createClass (x, nsample0, nsample, mdim);

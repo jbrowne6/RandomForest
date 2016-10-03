@@ -13,7 +13,7 @@ mylevels <- function(x) if (is.factor(x)) levels(x) else 0
              proximity, oob.prox=proximity,
              norm.votes=TRUE, do.trace=FALSE,
              keep.forest=!is.null(y) && is.null(xtest), corr.bias=FALSE,
-             keep.inbag=FALSE, ...) {
+             keep.inbag=FALSE, RerF=0, ...) {
     addclass <- is.null(y)
     classRF <- addclass || is.factor(y)
     if (!classRF && length(unique(y)) <= 5) {
@@ -232,6 +232,7 @@ mylevels <- function(x) if (is.factor(x)) levels(x) else 0
                     Stratify,
                     keep.inbag)),
                     ntree = as.integer(ntree),
+					Rerf = as.integer(RerF),
                     mtry = as.integer(mtry),
                     ipi = as.integer(ipi),
                     classwt = as.double(cwt),
@@ -373,6 +374,7 @@ mylevels <- function(x) if (is.factor(x)) levels(x) else 0
                     as.integer(nodesize),
                     as.integer(nrnodes),
                     as.integer(ntree),
+                    as.integer(RerF),
                     as.integer(mtry),
                     as.integer(c(importance, localImp, nPerm)),
                     as.integer(ncat),

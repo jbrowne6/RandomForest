@@ -17,6 +17,7 @@
     m[[1]] <- as.name("model.frame")
     m <- eval(m, parent.frame())
 	#rn <- 1:nrow(m)
+	
     y <- model.response(m)
     Terms <- attr(m, "terms")
     attr(Terms, "intercept") <- 0

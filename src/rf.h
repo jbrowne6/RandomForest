@@ -68,7 +68,7 @@ double pack(const int l, const int *icat);
 void unpack(const double pack, const int nBits, int *icat);
 
 /*randx goes through x and will randomly multiply elements in x by a number between -1 and 1.  rerf is the percent of elements to randomize*/
-void randx(double *x, const int mdim, const int nsample, const int rerf);
+void randx(double *x, double *XA, const int mdim, const int nsample, const int mtry, const int rerf);
 
 void zeroInt(int *x, int length);
 void zeroDouble(double *x, int length);

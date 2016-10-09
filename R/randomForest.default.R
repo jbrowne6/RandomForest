@@ -207,12 +207,14 @@ mylevels <- function(x) if (is.factor(x)) levels(x) else 0
         labelts <- FALSE
     }
     nt <- if (keep.forest) ntree else 1
-
-    if (classRF) {
-        cwt <- classwt
+###############################################################
+###  Expanded selection of random forest algorithm: classRF, regRF, rerfRF
+###############################################################
+    if (RerF){
+cwt <- classwt
         threshold <- cutoff
         error.test <- if (labelts) double((nclass+1) * ntree) else double(1)
-        rfout <- .C("classRF",
+        rfout <- .C("RerRF",
                     x = x,
                     xdim = as.integer(c(p, n)),
                     y = as.integer(y),
@@ -362,6 +364,160 @@ mylevels <- function(x) if (is.factor(x)) levels(x) else 0
                     x.row.names))) else NULL),
                     inbag = if (keep.inbag) matrix(rfout$inbag, nrow=nrow(rfout$inbag), 
 										dimnames=list(x.row.names, NULL)) else NULL)
+
+	} else if (classRF) {
+        cwt <- classwt
+        threshold <- cutoff
+        error.test <- if (labelts) double((nclass+1) * ntree) else double(1)
+        rfout <- .C("classRF",
+                    x = x,
+                    xdim = as.integer(c(p, n)),
+                    y = as.integer(y),
+                    nclass = as.integer(nclass),
+                    ncat = as.integer(ncat),
+                    maxcat = as.integer(maxcat),
+                    sampsize = as.integer(sampsize),
+                    strata = if (Stratify) as.integer(strata) else integer(1),
+                    Options = as.integer(c(addclass,
+                    importance,
+                    localImp,
+                    proximity,
+                    oob.prox,
+                    do.trace,
+                    keep.forest,
+                    replace,
+                    Stratify,
+                    keep.inbag)),
+                    ntree = as.integer(ntree),
+                    mtry = as.integer(mtry),
+                    ipi = as.integer(ipi),
+                    classwt = as.double(cwt),
+                    cutoff = as.double(threshold),
+                    nodesize = as.integer(nodesize),
+                    outcl = integer(nsample),
+                    counttr = integer(nclass * nsample),
+                    prox = prox,
+                    impout = impout,
+                    impSD = impSD,
+                    impmat = impmat,
+                    nrnodes = as.integer(nrnodes),
+                    ndbigtree = integer(ntree),
+                    nodestatus = integer(nt * nrnodes),
+                    bestvar = integer(nt * nrnodes),
+                    treemap = integer(nt * 2 * nrnodes),
+                    nodepred = integer(nt * nrnodes),
+                    xbestsplit = double(nt * nrnodes),
+                    errtr = double((nclass+1) * ntree),
+                    testdat = as.integer(testdat),
+                    xts = as.double(xtest),
+                    clts = as.integer(ytest),
+                    nts = as.integer(ntest),
+                    countts = double(nclass * ntest),
+                    outclts = as.integer(numeric(ntest)),
+                    labelts = as.integer(labelts),
+                    proxts = proxts,
+                    errts = error.test,
+                    inbag = if (keep.inbag)
+                    matrix(integer(n * ntree), n) else integer(n),
+                    DUP=FALSE,
+                    PACKAGE="randomForest")[-1]
+        if (keep.forest) {
+            ## deal with the random forest outputs
+            max.nodes <- max(rfout$ndbigtree)
+            treemap <- aperm(array(rfout$treemap, dim = c(2, nrnodes, ntree)),
+                             c(2, 1, 3))[1:max.nodes, , , drop=FALSE]
+        }
+        if (!addclass) {
+            ## Turn the predicted class into a factor like y.
+            out.class <- factor(rfout$outcl, levels=1:nclass,
+                                labels=levels(y))
+            names(out.class) <- x.row.names
+            con <- table(observed = y,
+                         predicted = out.class)[levels(y), levels(y)]
+            con <- cbind(con, class.error = 1 - diag(con)/rowSums(con))
+        }
+        out.votes <- t(matrix(rfout$counttr, nclass, nsample))[1:n, ]
+        oob.times <- rowSums(out.votes)
+        if (norm.votes)
+            out.votes <- t(apply(out.votes, 1, function(x) x/sum(x)))
+        dimnames(out.votes) <- list(x.row.names, levels(y))
+        class(out.votes) <- c(class(out.votes), "votes")
+        if (testdat) {
+            out.class.ts <- factor(rfout$outclts, levels=1:nclass,
+                                   labels=levels(y))
+            names(out.class.ts) <- xts.row.names
+            out.votes.ts <- t(matrix(rfout$countts, nclass, ntest))
+            dimnames(out.votes.ts) <- list(xts.row.names, levels(y))
+            if (norm.votes)
+                out.votes.ts <- t(apply(out.votes.ts, 1,
+                                        function(x) x/sum(x)))
+            class(out.votes.ts) <- c(class(out.votes.ts), "votes")
+            if (labelts) {
+                testcon <- table(observed = ytest,
+                                 predicted = out.class.ts)[levels(y), levels(y)]
+                testcon <- cbind(testcon,
+                                 class.error = 1 - diag(testcon)/rowSums(testcon))
+            }
+        }
+        cl <- match.call()
+        cl[[1]] <- as.name("randomForest")
+        out <- list(call = cl,
+                    type = if (addclass) "unsupervised" else "classification",
+                    predicted = if (addclass) NULL else out.class,
+                    err.rate = if (addclass) NULL else t(matrix(rfout$errtr,
+                    nclass+1, ntree,
+                    dimnames=list(c("OOB", levels(y)), NULL))),
+                    confusion = if (addclass) NULL else con,
+                    votes = out.votes,
+                    oob.times = oob.times,
+                    classes = levels(y),
+                    importance = if (importance)
+                    matrix(rfout$impout, p, nclass+2,
+                           dimnames = list(x.col.names,
+                           c(levels(y), "MeanDecreaseAccuracy",
+                             "MeanDecreaseGini")))
+                    else matrix(rfout$impout, ncol=1,
+                                dimnames=list(x.col.names, "MeanDecreaseGini")),
+                    importanceSD = if (importance)
+                    matrix(rfout$impSD, p, nclass + 1,
+                           dimnames = list(x.col.names,
+                           c(levels(y), "MeanDecreaseAccuracy")))
+                    else NULL,
+                    localImportance = if (localImp)
+                    matrix(rfout$impmat, p, n,
+                           dimnames = list(x.col.names,x.row.names)) else NULL,
+                    proximity = if (proximity) matrix(rfout$prox, n, n,
+                    dimnames = list(x.row.names, x.row.names)) else NULL,
+                    ntree = ntree,
+                    mtry = mtry,
+                    forest = if (!keep.forest) NULL else {
+                        list(ndbigtree = rfout$ndbigtree,
+                             nodestatus = matrix(rfout$nodestatus,
+                             ncol = ntree)[1:max.nodes,, drop=FALSE],
+                             bestvar = matrix(rfout$bestvar, ncol = ntree)[1:max.nodes,, drop=FALSE],
+                             treemap = treemap,
+                             nodepred = matrix(rfout$nodepred,
+                             ncol = ntree)[1:max.nodes,, drop=FALSE],
+                             xbestsplit = matrix(rfout$xbestsplit,
+                             ncol = ntree)[1:max.nodes,, drop=FALSE],
+                             pid = rfout$classwt, cutoff=cutoff, ncat=ncat,
+                             maxcat = maxcat,
+                             nrnodes = max.nodes, ntree = ntree,
+                             nclass = nclass, xlevels=xlevels)
+                    },
+                    y = if (addclass) NULL else y,
+                    test = if(!testdat) NULL else list(
+                    predicted = out.class.ts,
+                    err.rate = if (labelts) t(matrix(rfout$errts, nclass+1,
+                    ntree,
+                dimnames=list(c("Test", levels(y)), NULL))) else NULL,
+                    confusion = if (labelts) testcon else NULL,
+                    votes = out.votes.ts,
+                    proximity = if(proximity) matrix(rfout$proxts, nrow=ntest,
+                    dimnames = list(xts.row.names, c(xts.row.names,
+                    x.row.names))) else NULL),
+                    inbag = if (keep.inbag) matrix(rfout$inbag, nrow=nrow(rfout$inbag), 
+										dimnames=list(x.row.names, NULL)) else NULL)
     } else {
 		ymean <- mean(y)
 		y <- y - ymean
@@ -374,7 +530,6 @@ mylevels <- function(x) if (is.factor(x)) levels(x) else 0
                     as.integer(nodesize),
                     as.integer(nrnodes),
                     as.integer(ntree),
-                    as.integer(RerF),
                     as.integer(mtry),
                     as.integer(c(importance, localImp, nPerm)),
                     as.integer(ncat),

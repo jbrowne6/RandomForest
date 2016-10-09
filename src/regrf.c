@@ -20,8 +20,7 @@ void simpleLinReg(int nsample, double *x, double *y, double *coef,
 
 
 void regRF(double *x, double *y, int *xdim, int *sampsize,
-	   int *nthsize, int *nrnodes, int *nTree, int *RerF, int *mtry, 
-	   int *imp,
+	   int *nthsize, int *nrnodes, int *nTree, int *mtry, int *imp,
 	   int *cat, int *maxcat, int *jprint, int *doProx, int *oobprox,
            int *biasCorr, double *yptr, double *errimp, double *impmat,
            double *impSD, double *prox, int *treeSize, int *nodestatus,
@@ -139,7 +138,6 @@ void regRF(double *x, double *y, int *xdim, int *sampsize,
 	Rprintf("|\n");
     }
     GetRNGstate();
-	double rerf_per = ((double)*RerF)/100;//added for randomerForest
     /*************************************
      * Start the loop over trees.
      *************************************/
@@ -156,8 +154,6 @@ void regRF(double *x, double *y, int *xdim, int *sampsize,
 				yb[n] = y[k];
 				for(m = 0; m < mdim; ++m) {
 					xb[m + n * mdim] = x[m + k * mdim];
-					if (unif_rand()<rerf_per){//added for randomerForest
-							xb[m+n*mdim]*=(unif_rand()*2-1);}
 				}
 			}
 		} else { /* sampling w/o replacement */
@@ -172,8 +168,6 @@ void regRF(double *x, double *y, int *xdim, int *sampsize,
 				yb[n] = y[k];
 				for(m = 0; m < mdim; ++m) {
 					xb[m + n * mdim] = x[m + k * mdim];
-                    if (unif_rand()<rerf_per){//added for randomerForest
-							xb[m+n*mdim]*=(unif_rand()*2-1);}
 				}
 			}
 		}

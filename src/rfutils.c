@@ -58,43 +58,74 @@ void randx(double *x, double *XA, const int mdim, const int nsample, const int m
 		double dotProd;
 		double rerf_p = (double) rerf / 100;
 
-		double *A = (double *) calloc (mdim * mtry, sizeof (double));
-		zeroDouble(A, mdim*mtry);
+		//	double *A = (double *) calloc (mdim * mtry, sizeof (double));
+		double A[mdim*mtry];	
 		zeroDouble(XA, mtry*nsample);
-	//	Rprintf("\n start makeA");
+		//	Rprintf("\n start makeA");
+		int target_used = (mdim-1)*mtry;
+		int num_used = 0;
+		if (rerf == 20){
+				zeroDouble(A, mdim*mtry);
+				for (int q = 0; q<mtry; q++){
+						A[q*(mtry+1)]=1;
+				}
+		} else{
+		while(num_used != target_used){
+num_used = 0;
 
-		for (int q = 0; q < mdim*mtry; q++)
-		{
-				int num_used = 0;
-				while(num_used <1){
-				if(unif_rand() < rerf_p){
-						num_used++;
-						if(unif_rand()<.5){
-								A[q]=-1;
-						}else{
-								A[q]=1;
+				zeroDouble(A, mdim*mtry);
+				for (int q = 0; q < mdim*mtry; q++)
+				{
+						if(unif_rand() > 1/((double)mdim)){
+								num_used++;
+								if(unif_rand()<.5){
+										A[q]=-1;
+								}else{
+										A[q]=1;
+								}
 						}
-				}}
-		}
-		
+				}
+		}}
+
 Rprintf("\n\n\n");
 		for (int q = 0; q < mdim; q++)
 		{
 				Rprintf("\n");
-for (int t = 0; t < mdim; t++){
-		Rprintf("%f ", A[q*mdim + t]);
+for (int t = 0; t < mtry; t++){
+		Rprintf("%f ", A[q*mtry + t]);
 }
 
 		}
+Rprintf("\n\n");
+		for (int q = 0; q < nsample; q++)
+		{
+				Rprintf("\n");
+for (int t = 0; t < mdim; t++){
+		Rprintf("%f ", x[q*mdim + t]);
+}
+
+		}
+
 
 		for (n = 0; n < nsample; n++){
 				for (p = 0; p < mtry; p++){
 						for (m=0; m<mdim; m++){
 								XA[n*mtry+p]+= x[n*mdim+m]*A[p*mdim+m];
+						
 						}
+						
 				}
 		}
-free(A);
+//free(A);
+Rprintf("\n\n");
+		for (int q = 0; q < nsample; q++)
+		{
+				Rprintf("\n");
+for (int t = 0; t < mtry; t++){
+		Rprintf("%f ", XA[q*mtry + t]);
+}
+
+		}
 }
 
 void makeA(double *x, const int mdim, const int nsample, int *cat, int *a,

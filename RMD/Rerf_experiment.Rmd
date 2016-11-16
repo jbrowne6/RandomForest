@@ -1,0 +1,94 @@
+---
+title: "Random Forest"
+author: "James Browne"
+date: "November 7, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+'''{r, echo=FALSE }
+install.packages('randomForest_4.6-13.tar.gz', repos=NULL)
+library(randomForest)
+set.seed(71)
+mydata = read.table("R/data/breast-cancer-wisc/breast-cancer-wisc_R.dat")
+mydata$clase <- as.factor(mydata$clase)
+'''
+## R Markdown
+
+Test 1: 5 runs of Breiman RF on breast-cancer-wisc
+
+```{r , echo=FALSE}
+library(randomForest)
+getwd()
+mydata = read.table("~/R/data/breast-cancer-wisc/breast-cancer-wisc_R.dat")
+mydata$clase <- as.factor(mydata$clase)
+x <- vector()
+for (i in 1:5){
+  iris.rf<-randomForest(clase ~ ., data=mydata, importance=TRUE, proximity=TRUE, rerf=20)
+x <- c(x,round(iris.rf$err.rate[iris.rf$ntree]*100, digits=2))
+}
+mean(x)
+```
+
+Test 2: 5 runs, A = dense matrix, mdim x mtry, breast-cancer-wisc
+
+```{r , echo=FALSE}
+library(randomForest)
+getwd()
+mydata = read.table("~/R/data/breast-cancer-wisc/breast-cancer-wisc_R.dat")
+mydata$clase <- as.factor(mydata$clase)
+x <- vector()
+for (i in 1:5){
+  iris.rf<-randomForest(clase ~ ., data=mydata, importance=TRUE, proximity=TRUE, rerf=3)
+x <- c(x,round(iris.rf$err.rate[iris.rf$ntree]*100, digits=2))
+}
+mean(x)
+```
+
+Test 3: 5 runs, A = dense matrix, mdim x mdim, breast-cancer-wisc
+
+```{r , echo=FALSE}
+library(randomForest)
+getwd()
+mydata = read.table("~/R/data/breast-cancer-wisc/breast-cancer-wisc_R.dat")
+mydata$clase <- as.factor(mydata$clase)
+x <- vector()
+for (i in 1:5){
+  iris.rf<-randomForest(clase ~ ., data=mydata, importance=TRUE, proximity=TRUE, rerf=4)
+x <- c(x,round(iris.rf$err.rate[iris.rf$ntree]*100, digits=2))
+}
+mean(x)
+```
+
+
+Test 4: 5 runs, A = sparse matrix, mdim x mtry, breast-cancer-wisc
+
+```{r , echo=FALSE}
+library(randomForest)
+getwd()
+mydata = read.table("~/R/data/breast-cancer-wisc/breast-cancer-wisc_R.dat")
+mydata$clase <- as.factor(mydata$clase)
+x <- vector()
+for (i in 1:5){
+  iris.rf<-randomForest(clase ~ ., data=mydata, importance=TRUE, proximity=TRUE, rerf=6)
+x <- c(x,round(iris.rf$err.rate[iris.rf$ntree]*100, digits=2))
+}
+mean(x)
+```
+
+Test 5: 5 runs, A = sparse matrix, mdim x mdim, breast-cancer-wisc
+
+```{r , echo=FALSE}
+library(randomForest)
+getwd()
+mydata = read.table("~/R/data/breast-cancer-wisc/breast-cancer-wisc_R.dat")
+mydata$clase <- as.factor(mydata$clase)
+x <- vector()
+for (i in 1:5){
+  iris.rf<-randomForest(clase ~ ., data=mydata, importance=TRUE, proximity=TRUE, rerf=7)
+x <- c(x,round(iris.rf$err.rate[iris.rf$ntree]*100, digits=2))
+}
+mean(x)
+```

@@ -52,7 +52,7 @@ void normClassWt(int *cl, const int nsample, const int nclass,
 	}
 }
 
-void randx(double *x, double *XA, const int mdim, const int nsample, const int mtry, const int rerf){
+void randx(double *x, double *XA, const int mdim, const int nsample, const int mtry, const int rerf, int *AHold, const int jb){
 	int m,n,p,q;
 	double dotProd;
 	double rerf_p = (double) rerf / 100;
@@ -113,6 +113,10 @@ percent_target = (float)target_used/(mdim*mtry);
 				XA[n*mtry+p]+= x[n*mdim+m]*A[p*mdim+m];
 			}
 		}
+	}
+	for (n = 0; n < mdim*mtry; n++)
+	{
+		AHold[mdim*mtry*jb+n] = A[n];
 	}
 	if (err_print == 1){
 		Rprintf("\n\n\n");

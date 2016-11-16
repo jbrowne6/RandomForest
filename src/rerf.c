@@ -35,7 +35,7 @@ void TestSetError (double *countts, int *jts, int *clts, int *jet, int ntest,
 	void
 RerRF (double *x, int *dimx, int *cl, int *ncl, int *cat, int *maxcat,
 		int *sampsize, int *strata, int *Options, int *ntree, int *RerF,
-		int *nvar,
+		int *AHold, int *nvar,
 		int *ipi, double *classwt, double *cut, int *nodesize,
 		int *outcl, int *counttr, double *prox,
 		double *imprt, double *impsd, double *impmat, int *nrnodes,
@@ -276,17 +276,24 @@ varUsed = (int *) S_alloc (mdim, sizeof (int));
 		if (rerf > 0){
 			if (rerf == 3 || rerf == 6 || rerf == 20)//just used to test when mdim == mtry.
 			{
-				randx(x, XA, mdim, nsample, mdim, rerf);	//added for randomerForest
+				randx(x, XA, mdim, nsample, mdim, rerf, AHold, jb);	//added for randomerForest
 			}else if (rerf == 4 || rerf == 7)
 			{
-				randx(x, XA, mdim, nsample, mtry, rerf);	//added for randomerForest
+				randx(x, XA, mdim, nsample, mtry, rerf, AHold, jb);	//added for randomerForest
 				mdim = mtry;
 			}else if (rerf == 5 || rerf == 8)
 {
-randx(x, XA, mdim, nsample, mdim*2, rerf);	//added for randomerForest
+randx(x, XA, mdim, nsample, mdim*2, rerf, AHold, jb);	//added for randomerForest
 				mdim = mdim*2;
 }
 			makeA (XA, mdim, nsample, cat, at, b);	//moved for randomerForest
+
+			for (int z = 0; z< mdim*mdim; z++){
+if (z%mdim == 0){
+					Rprintf("\n");}
+				Rprintf("%d ", AHold[jb*mdim*mdim+z]);
+			}
+Rprintf(" test\n");
 		}
 		/* Do we need to simulate data for the second class? */
 		if (addClass)

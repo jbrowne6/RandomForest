@@ -13,7 +13,7 @@ mylevels <- function(x) if (is.factor(x)) levels(x) else 0
              proximity, oob.prox=proximity,
              norm.votes=TRUE, do.trace=FALSE,
              keep.forest=!is.null(y) && is.null(xtest), corr.bias=FALSE,
-             keep.inbag=FALSE, RerF=0, ...) {
+             keep.inbag=FALSE, RerF=0, AHold=NULL,...) {
     addclass <- is.null(y)
     classRF <- addclass || is.factor(y)
     if (!classRF && length(unique(y)) <= 5) {
@@ -235,6 +235,7 @@ cwt <- classwt
                     keep.inbag)),
                     ntree = as.integer(ntree),
 					Rerf = as.integer(RerF),
+					AHold = integer((p)*(p)*ntree),
                     mtry = as.integer(mtry),
                     ipi = as.integer(ipi),
                     classwt = as.double(cwt),
@@ -305,6 +306,8 @@ cwt <- classwt
                                  class.error = 1 - diag(testcon)/rowSums(testcon))
             }
         }
+		##cat("AHold is\n")
+		##str(rfout$AHold)
         cl <- match.call()
         cl[[1]] <- as.name("randomForest")
         out <- list(call = cl,
@@ -362,8 +365,11 @@ cwt <- classwt
                     proximity = if(proximity) matrix(rfout$proxts, nrow=ntest,
                     dimnames = list(xts.row.names, c(xts.row.names,
                     x.row.names))) else NULL),
-                    inbag = if (keep.inbag) matrix(rfout$inbag, nrow=nrow(rfout$inbag), 
-										dimnames=list(x.row.names, NULL)) else NULL)
+                    inbag = if (keep.inbag) matrix(rfout$inbag, nrow=nrow(rfout$inbag),
+										dimnames=list(x.row.names, NULL)) else NULL,
+					AHold = rfout$AHold,
+					RerF = 5
+					)
 
 	} else if (classRF) {
         cwt <- classwt
@@ -516,7 +522,7 @@ cwt <- classwt
                     proximity = if(proximity) matrix(rfout$proxts, nrow=ntest,
                     dimnames = list(xts.row.names, c(xts.row.names,
                     x.row.names))) else NULL),
-                    inbag = if (keep.inbag) matrix(rfout$inbag, nrow=nrow(rfout$inbag), 
+                    inbag = if (keep.inbag) matrix(rfout$inbag, nrow=nrow(rfout$inbag),
 										dimnames=list(x.row.names, NULL)) else NULL)
     } else {
 		ymean <- mean(y)

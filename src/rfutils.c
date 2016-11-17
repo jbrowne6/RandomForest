@@ -114,6 +114,10 @@ percent_target = (float)target_used/(mdim*mtry);
 			}
 		}
 	}
+/*for (int w = 0; w<20; w++)
+{
+	Rprintf("%lf - %lf\n", XA[w], x[w]);
+}*/
 	for (n = 0; n < mdim*mtry; n++)
 	{
 		AHold[mdim*mtry*jb+n] = A[n];

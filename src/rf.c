@@ -538,7 +538,98 @@ void classRF(double *x, int *dimx, int *cl, int *ncl, int *cat, int *maxcat,
 		}
     }
 }
+void rotateX(const int mdim, const int ntest, int *A, double *x, double *rotX)
+{
+	for (int q = 0; q < ntest*mdim; q++)
+	{
+		rotX[q] = 0;
+	}
+for (int n = 0; n < ntest; n++){
+		for (int p = 0; p < mdim; p++){
+			for (int m=0; m<mdim; m++){
+				rotX[n*mdim+p]+= x[n*mdim+m]*A[p*mdim+m];
+			}
+		}
+	}
+for (int z = 0; z<mdim*mdim; z++)
+{
+	if(z%mdim==0){Rprintf("\n");}
+	Rprintf("%d ", A[z]);
+}
+/*
+for (int w = 0; w<20; w++)
+{
+	Rprintf("%lf - %lf\n", rotX[w], x[w]);
+}*/
+}
 
+void classForestRerF(int *mdim, int *ntest, int *nclass, int *maxcat,
+                 int *nrnodes, int *ntree, double *x, double *xbestsplit,
+                 double *pid, double *cutoff, double *countts, int *treemap,
+                 int *nodestatus, int *cat, int *nodeclass, int *jts,
+                 int *jet, int *bestvar, int *node, int *treeSize,
+                 int *keepPred, int *prox, double *proxMat, int *nodes, int *AHold) {
+    int j, n, n1, n2, idxNodes, offset1, offset2, *junk, ntie;
+    double crit, cmax;
+
+    zeroDouble(countts, *nclass * *ntest);
+    idxNodes = 0;
+    offset1 = 0;
+    offset2 = 0;
+    junk = NULL;
+double * rotX = (double *) S_alloc (*ntest*(*mdim), sizeof(double));//used to hold rotated data.
+    for (j = 0; j < *ntree; ++j) {
+rotateX(*mdim, *ntest, AHold+j*(*mdim*(*mdim)), x, rotX);
+		/* predict by the j-th tree */
+        predictClassTree(rotX, *ntest, *mdim, treemap + 2*idxNodes,
+			 nodestatus + idxNodes, xbestsplit + idxNodes,
+			 bestvar + idxNodes, nodeclass + idxNodes,
+			 treeSize[j], cat, *nclass,
+			 jts + offset1, node + offset2, *maxcat);
+		/* accumulate votes: */
+		for (n = 0; n < *ntest; ++n) {
+			countts[jts[n + offset1] - 1 + n * *nclass] += 1.0;
+		}
+
+		/* if desired, do proximities for this round */
+		if (*prox) computeProximity(proxMat, 0, node + offset2, junk, junk,
+									*ntest);
+		idxNodes += *nrnodes;
+		if (*keepPred) offset1 += *ntest;
+		if (*nodes)    offset2 += *ntest;
+    }
+
+    /* Aggregated prediction is the class with the maximum votes/cutoff */
+    for (n = 0; n < *ntest; ++n) {
+		cmax = 0.0;
+		ntie = 1;
+		for (j = 0; j < *nclass; ++j) {
+			crit = (countts[j + n * *nclass] / *ntree) / cutoff[j];
+			if (crit > cmax) {
+				jet[n] = j + 1;
+				cmax = crit;
+				ntie = 1;
+			}
+			/* Break ties at random: */
+			if (crit == cmax) {
+				if (unif_rand() < 1.0 / ntie) jet[n] = j + 1;
+				ntie++;
+			}
+		}
+    }
+
+    /* if proximities requested, do the final adjustment
+       (division by number of trees) */
+    if (*prox) {
+		for (n1 = 0; n1 < *ntest; ++n1) {
+			for (n2 = n1 + 1; n2 < *ntest; ++n2) {
+				proxMat[n1 + n2 * *ntest] /= *ntree;
+				proxMat[n2 + n1 * *ntest] = proxMat[n1 + n2 * *ntest];
+			}
+			proxMat[n1 + n1 * *ntest] = 1.0;
+		}
+    }
+}
 
 void classForest(int *mdim, int *ntest, int *nclass, int *maxcat,
                  int *nrnodes, int *ntree, double *x, double *xbestsplit,
@@ -658,7 +749,6 @@ void oob(int nsample, int nclass, int *cl, int *jtr,int *jerr,
     errtr[0] /= noob;
     for (n = 1; n <= nclass; ++n) errtr[n] /= noobcl[n-1];
 }
-
 
 void TestSetError(double *countts, int *jts, int *clts, int *jet, int ntest,
 		  int nclass, int nvote, double *errts,

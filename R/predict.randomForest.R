@@ -1,6 +1,6 @@
 "predict.randomForest" <-
     function (object, newdata, type = "response", norm.votes = TRUE,
-              predict.all=FALSE, proximity = FALSE, nodes=FALSE, cutoff, ...)
+              predict.all=FALSE, proximity = FALSE, RerF = 0, nodes=FALSE, cutoff, ...)
 {
     if (!inherits(object, "randomForest"))
         stop("object not of class randomForest")
@@ -211,7 +211,67 @@
                 attr(res, "nodes") <- matrix(ans$nodexts, ntest, ntree,
                                              dimnames=list(rn[keep], 1:ntree))
             }
+        } else if (RerF != 0){
+        countts <- matrix(0, ntest, nclass)
+        t1 <- .C("classForestRerF",
+                 mdim = as.integer(mdim),
+                 ntest = as.integer(ntest),
+                 nclass = as.integer(object$forest$nclass),
+                 maxcat = as.integer(maxcat),
+                 nrnodes = as.integer(nrnodes),
+                 jbt = as.integer(ntree),
+                 xts = as.double(x),
+                 xbestsplit = as.double(object$forest$xbestsplit),
+                 pid = object$forest$pid,
+                 cutoff = as.double(cutoff),
+                 countts = as.double(countts),
+                 treemap = as.integer(aperm(object$forest$treemap,
+                                 c(2, 1, 3))),
+                 nodestatus = as.integer(object$forest$nodestatus),
+                 cat = as.integer(object$forest$ncat),
+                 nodepred = as.integer(object$forest$nodepred),
+                 treepred = as.integer(treepred),
+                 jet = as.integer(numeric(ntest)),
+                 bestvar = as.integer(object$forest$bestvar),
+                 nodexts = as.integer(nodexts),
+                 ndbigtree = as.integer(object$forest$ndbigtree),
+                 predict.all = as.integer(predict.all),
+                 prox = as.integer(proximity),
+                 proxmatrix = as.double(proxmatrix),
+                 nodes = as.integer(nodes),
+				 AHold = as.integer(object$AHold),
+                 DUP=FALSE,
+                 PACKAGE = "randomForest")
+        if (out.type > 1) {
+            out.class.votes <- t(matrix(t1$countts, nrow = nclass, ncol = ntest))
+            if (norm.votes)
+                out.class.votes <-
+                    sweep(out.class.votes, 1, rowSums(out.class.votes), "/")
+            z <- matrix(NA, length(rn), nclass,
+                        dimnames=list(rn, object$classes))
+            z[keep, ] <- out.class.votes
+             class(z) <- c(class(z), "votes")
+            res <- z
         } else {
+            out.class <- factor(rep(NA, length(rn)),
+                                levels=1:length(object$classes),
+                                labels=object$classes)
+            out.class[keep] <- object$classes[t1$jet]
+            names(out.class)[keep] <- rn[keep]
+            res <- out.class
+        }
+        if (predict.all) {
+            treepred <- matrix(object$classes[t1$treepred],
+                               nrow=length(keep), dimnames=list(rn[keep], NULL))
+            res <- list(aggregate=res, individual=treepred)
+        }
+        if (proximity)
+            res <- list(predicted = res, proximity = structure(t1$proxmatrix,
+                                         dim = c(ntest, ntest),
+                                         dimnames = list(rn[keep], rn[keep])))
+        if (nodes) attr(res, "nodes") <- matrix(t1$nodexts, ntest, ntree,
+                                                dimnames=list(rn[keep], 1:ntree))
+    }else {
         countts <- matrix(0, ntest, nclass)
         t1 <- .C("classForest",
                  mdim = as.integer(mdim),

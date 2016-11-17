@@ -34,6 +34,12 @@ void classRF(double *x, int *dimx, int *cl, int *ncl, int *cat, int *maxcat,
 
 void normClassWt(int *cl, const int nsample, const int nclass,
                  const int useWt, double *classwt, int *classFreq);
+void classForestRerF(int *mdim, int *ntest, int *nclass, int *maxcat,
+                 int *nrnodes, int *ntree, double *x, double *xbestsplit,
+                 double *pid, double *cutoff, double *countts, int *treemap,
+                 int *nodestatus, int *cat, int *nodeclass, int *jts,
+                 int *jet, int *bestvar, int *node, int *treeSize,
+                 int *keepPred, int *prox, double *proxMat, int *nodes, int *AHold);
 
 void classForest(int *mdim, int *ntest, int *nclass, int *maxcat,
                  int *nrnodes, int *jbt, double *xts, double *xbestsplit,

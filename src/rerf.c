@@ -288,12 +288,12 @@ randx(x, XA, mdim, nsample, mdim*2, rerf, AHold, jb);	//added for randomerForest
 }
 			makeA (XA, mdim, nsample, cat, at, b);	//moved for randomerForest
 
-			for (int z = 0; z< mdim*mdim; z++){
+/*			for (int z = 0; z< mdim*mdim; z++){
 if (z%mdim == 0){
 					Rprintf("\n");}
 				Rprintf("%d ", AHold[jb*mdim*mdim+z]);
 			}
-Rprintf(" test\n");
+Rprintf(" test\n");*/
 		}
 		/* Do we need to simulate data for the second class? */
 		if (addClass)

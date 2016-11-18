@@ -1,0 +1,99 @@
+---
+title: "RerF experiments on iris and breast-cancer-wisc"
+author: "James Browne"
+date: "November 15, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+For all experiments-
+
+
+
+
+Experiment 1-  Run 100 rounds.  Each round: randomly select 80% of iris.  Run classifier.
+
+Classifier- RF
+```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+set.seed(71)
+data(iris)
+library(randomForest)
+results = vector()
+
+for (i in 1:100){
+ind <- sample(2, nrow(iris), replace = TRUE, prob=c(0.8, 0.2))
+iris.rf <- randomForest(Species ~ ., data=iris[ind ==1,])
+results[i] <- iris.rf$err.rate[iris.rf$ntree]*100
+}
+summary(results)
+```
+
+Classifier- RerF
+1.  A is mdim by mdim
+2.  Dense A: mdim * (mdim -1) non zero entries all of which have 50/50 chance of being 1/-1.
+```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+set.seed(71)
+data(iris)
+library(randomForest)
+results = vector()
+
+for (i in 1:100){
+ind <- sample(2, nrow(iris), replace = TRUE, prob=c(0.8, 0.2))
+iris.rf <- randomForest(Species ~ ., data=iris[ind ==1,], RerF=3)
+results[i] <- iris.rf$err.rate[iris.rf$ntree]*100
+}
+summary(results)
+```
+
+Classifier- RerF
+1.  A is mdim by mdim
+2.  Sparse A: mdim non zero entries all of which have 50/50 chance of being 1/-1.
+```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+set.seed(71)
+data(iris)
+library(randomForest)
+results = vector()
+
+for (i in 1:100){
+ind <- sample(2, nrow(iris), replace = TRUE, prob=c(0.8, 0.2))
+iris.rf <- randomForest(Species ~ ., data=iris[ind ==1,], RerF=6)
+results[i] <- iris.rf$err.rate[iris.rf$ntree]*100
+}
+summary(results)
+```
+
+Classifier- RerF
+1.  A is mdim by mtry
+2.  Dense A: mdim * (mdim -1) non zero entries all of which have 50/50 chance of being 1/-1.
+```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+set.seed(71)
+data(iris)
+library(randomForest)
+results = vector()
+
+for (i in 1:100){
+ind <- sample(2, nrow(iris), replace = TRUE, prob=c(0.8, 0.2))
+iris.rf <- randomForest(Species ~ ., data=iris[ind ==1,], RerF=4)
+results[i] <- iris.rf$err.rate[iris.rf$ntree]*100
+}
+summary(results)
+```
+
+Classifier- RerF
+1.  A is mdim by mtry
+2.  Sparse A: mdim non zero entries all of which have 50/50 chance of being 1/-1.
+```{r, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
+set.seed(71)
+data(iris)
+library(randomForest)
+results = vector()
+
+for (i in 1:100){
+ind <- sample(2, nrow(iris), replace = TRUE, prob=c(0.8, 0.2))
+iris.rf <- randomForest(Species ~ ., data=iris[ind ==1,], RerF=7)
+results[i] <- iris.rf$err.rate[iris.rf$ntree]*100
+}
+summary(results)
+```

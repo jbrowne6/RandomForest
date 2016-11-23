@@ -240,6 +240,7 @@
                  proxmatrix = as.double(proxmatrix),
                  nodes = as.integer(nodes),
 				 AHold = as.integer(object$AHold),
+				 dSize = as.integer(object$DSize),
                  DUP=FALSE,
                  PACKAGE = "randomForest")
         if (out.type > 1) {

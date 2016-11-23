@@ -35,7 +35,7 @@ void TestSetError (double *countts, int *jts, int *clts, int *jet, int ntest,
 	void
 RerRF (double *x, int *dimx, int *cl, int *ncl, int *cat, int *maxcat,
 		int *sampsize, int *strata, int *Options, int *ntree, int *RerF,
-		int *AHold, int *nvar,
+		int *dSize, int *AHold, int *nvar,
 		int *ipi, double *classwt, double *cut, int *nodesize,
 		int *outcl, int *counttr, double *prox,
 		double *imprt, double *impsd, double *impmat, int *nrnodes,
@@ -110,7 +110,9 @@ RerRF (double *x, int *dimx, int *cl, int *ncl, int *cat, int *maxcat,
 	stratify = Options[8];
 	keepInbag = Options[9];
 	mdim = dimx[0];
+
 	int mdim_hold = mdim; //needed to set mdim back after creating XA.
+//mdim = *dSize;
 	nsample0 = dimx[1];
 	nclass = (*ncl == 1) ? 2 : *ncl;
 	ndsize = *nodesize;
@@ -150,18 +152,7 @@ RerRF (double *x, int *dimx, int *cl, int *ncl, int *cat, int *maxcat,
 	classFreq = (int *) S_alloc (nclass, sizeof (int));
 	jts = (int *) S_alloc (ntest, sizeof (int));
 	idmove = (int *) S_alloc (nsample, sizeof (int));
-if (rerf == 5 || rerf == 8)
-{
-	at = (int *) S_alloc (mdim *2 * nsample, sizeof (int));
-	XA =(double *) S_alloc (mdim *2 * nsample, sizeof (double));	//added for randomerForest
-	a = (int *) S_alloc (mdim *2* nsample, sizeof (int));
-	b = (int *) S_alloc (mdim *2* nsample, sizeof (int));
-	mind = (int *) S_alloc (mdim*2, sizeof (int));
-tgini = (double *) S_alloc (mdim*2, sizeof (double));
-varUsed = (int *) S_alloc (mdim*2, sizeof (int));
-mimp = imp ? mdim*2 : 1;
 
-}else {
 at = (int *) S_alloc (mdim * nsample, sizeof (int));
 	XA =(double *) S_alloc (mdim * nsample, sizeof (double));	//added for randomerForest
 	a = (int *) S_alloc (mdim * nsample, sizeof (int));
@@ -169,9 +160,6 @@ at = (int *) S_alloc (mdim * nsample, sizeof (int));
 	mind = (int *) S_alloc (mdim, sizeof (int));
 tgini = (double *) S_alloc (mdim, sizeof (double));
 varUsed = (int *) S_alloc (mdim, sizeof (int));
-
-}
-	nright = (int *) S_alloc (nclass, sizeof (int));
 	nrightimp = (int *) S_alloc (nclass, sizeof (int));
 	nout = (int *) S_alloc (nclass, sizeof (int));
 	if (oobprox)
@@ -276,16 +264,19 @@ varUsed = (int *) S_alloc (mdim, sizeof (int));
 		if (rerf > 0){
 			if (rerf == 3 || rerf == 6 || rerf == 20)//just used to test when mdim == mtry.
 			{
-				randx(x, XA, mdim, nsample, mdim, rerf, AHold, jb);	//added for randomerForest
+				randx(x, XA, mdim_hold, nsample, *dSize, rerf, AHold, jb);	//added for randomerForest
 			}else if (rerf == 4 || rerf == 7)
 			{
-				randx(x, XA, mdim, nsample, mtry, rerf, AHold, jb);	//added for randomerForest
+				*dSize = mtry;
+				randx(x, XA, mdim_hold, nsample, *dSize, rerf, AHold, jb);	//added for randomerForest
 				mdim = mtry;
 			}else if (rerf == 5 || rerf == 8)
 {
-randx(x, XA, mdim, nsample, mdim*2, rerf, AHold, jb);	//added for randomerForest
-				mdim = mdim*2;
+	randx(x, XA, mdim_hold, nsample, *dSize, rerf, AHold, jb);	//added for randomerForest
+	//			mdim = mdim*2;
+
 }
+
 			makeA (XA, mdim, nsample, cat, at, b);	//moved for randomerForest
 
 /*			for (int z = 0; z< mdim*mdim; z++){
@@ -296,7 +287,9 @@ if (z%mdim == 0){
 Rprintf(" test\n");*/
 		}
 		/* Do we need to simulate data for the second class? */
+
 		if (addClass)
+
 			createClass (XA, nsample0, nsample, mdim);
 		do
 		{
@@ -307,6 +300,7 @@ Rprintf(" test\n");*/
 			zeroInt (varUsed, mdim);
 			/* TODO: Put all sampling code into a function. */
 			/* drawSample(sampsize, nsample, ); */
+
 			if (stratify)
 			{			/* stratified sampling */
 				zeroInt (jin, nsample);
@@ -427,7 +421,9 @@ Rprintf(" test\n");*/
 					ndbigtree + jb, win, wr, wl, &mdim, &nuse,
 					mind);
 			/* if the "tree" has only the root node, start over */
+
 		}
+
 		while (ndbigtree[jb] == 1);
 
 		Xtranslate (XA, mdim, *nrnodes, nsample, bestvar + idxByNnode,
@@ -611,7 +607,7 @@ Rprintf(" test\n");*/
 		if (keepInbag)
 			idxByNsample += nsample0;
 
-		mdim = mdim_hold; //reset mdim every iteration so that randx can recreate XA every time.
+	//	mdim = mdim_hold; //reset mdim every iteration so that randx can recreate XA every time.
 	}
 	PutRNGstate ();
 

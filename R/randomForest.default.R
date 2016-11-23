@@ -13,7 +13,7 @@ mylevels <- function(x) if (is.factor(x)) levels(x) else 0
              proximity, oob.prox=proximity,
              norm.votes=TRUE, do.trace=FALSE,
              keep.forest=!is.null(y) && is.null(xtest), corr.bias=FALSE,
-             keep.inbag=FALSE, RerF=0, AHold=NULL,...) {
+             keep.inbag=FALSE, RerF=0, AHold=NULL, dSize=0,...) {
     addclass <- is.null(y)
     classRF <- addclass || is.factor(y)
     if (!classRF && length(unique(y)) <= 5) {
@@ -207,6 +207,7 @@ mylevels <- function(x) if (is.factor(x)) levels(x) else 0
         labelts <- FALSE
     }
     nt <- if (keep.forest) ntree else 1
+	if(dSize==0){dSize<-p}## if dSize == 0 then set it equal to Mdim.
 ###############################################################
 ###  Expanded selection of random forest algorithm: classRF, regRF, rerfRF
 ###############################################################
@@ -235,7 +236,8 @@ cwt <- classwt
                     keep.inbag)),
                     ntree = as.integer(ntree),
 					Rerf = as.integer(RerF),
-					AHold = integer((p)*(p)*ntree),
+					dSize = as.integer(dSize),
+					AHold = integer((p)*(dSize)*ntree),
                     mtry = as.integer(mtry),
                     ipi = as.integer(ipi),
                     classwt = as.double(cwt),
@@ -367,7 +369,7 @@ cwt <- classwt
                     x.row.names))) else NULL),
                     inbag = if (keep.inbag) matrix(rfout$inbag, nrow=nrow(rfout$inbag),
 										dimnames=list(x.row.names, NULL)) else NULL,
-					AHold = rfout$AHold,
+					AHold = rfout$AHold, DSize = rfout$dSize,
 					RerF = 5
 					)
 

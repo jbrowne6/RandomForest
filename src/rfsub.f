@@ -66,6 +66,7 @@ c     main program.
       nodepop(1) = nuse
       nodestatus(1) = 2
 c     start main loop
+
       do 30 kbuild = 1, nrnodes
 c         call intpr("kbuild", 6, kbuild, 1)
 c         call intpr("ncur", 4, ncur, 1)
@@ -123,6 +124,8 @@ c     find class populations in both nodes
             j = cl(nc)
             classpop(j,ncur+2) = classpop(j,ncur+2) + win(nc)
          end do
+
+c      write(*,*) "Hello World 1!"
 c         call intpr("nL", 2, nodepop(ncur+1), 1)
 c         call intpr("nR", 2, nodepop(ncur+2), 1)
 c     check on nodestatus
@@ -132,6 +135,7 @@ c     check on nodestatus
          if (nodepop(ncur+2).le.ndsize) nodestatus(ncur+2) = -1
          popt1 = 0
          popt2 = 0
+
          do j = 1, nclass
             popt1 = popt1 + classpop(j,ncur+1)
             popt2 = popt2 + classpop(j,ncur+2)
@@ -142,11 +146,14 @@ c     check on nodestatus
             if (classpop(j,ncur+2).eq.popt2) nodestatus(ncur+2) = -1
          end do
 
+c      write(*,*) "Hello World 3!"
          treemap(1,kbuild) = ncur + 1
          treemap(2,kbuild) = ncur + 2
          nodestatus(kbuild) = 1
          ncur = ncur+2
          if (ncur.ge.nrnodes) goto 50
+
+c      write(*,*) "Hello World 2!"
  30   continue
  50   continue
 
@@ -158,7 +165,7 @@ c     check on nodestatus
 
 c     form prediction in terminal nodes
       do kn = 1, ndbigtree
-      
+
          if (nodestatus(kn) .eq. -1) then
             pp = 0
             ntie = 1
@@ -176,7 +183,7 @@ c     Break ties at random:
                      pp=classpop(j,kn)
                   end if
                   ntie = ntie + 1
-               end if		               
+               end if
             end do
          end if
 c         call intpr("node", 4, kn, 1)
@@ -271,7 +278,7 @@ c     Break ties at random:
                            msplit = mvar
                         end if
                         ntie = ntie + 1
-                     end if                     
+                     end if
                   end if
                end if
             end do

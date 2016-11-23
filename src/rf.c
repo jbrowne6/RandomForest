@@ -538,19 +538,20 @@ void classRF(double *x, int *dimx, int *cl, int *ncl, int *cat, int *maxcat,
 		}
     }
 }
-void rotateX(const int mdim, const int ntest, int *A, double *x, double *rotX)
+void rotateX(const int mdim, const int dsize, const int ntest, int *A, double *x, double *rotX)
 {
-	for (int q = 0; q < ntest*mdim; q++)
+	for (int q = 0; q < ntest*dsize; q++)
 	{
 		rotX[q] = 0;
 	}
 for (int n = 0; n < ntest; n++){
-		for (int p = 0; p < mdim; p++){
+		for (int p = 0; p < dsize; p++){
 			for (int m=0; m<mdim; m++){
-				rotX[n*mdim+p]+= x[n*mdim+m]*A[p*mdim+m];
+				rotX[n*dsize+p]+= x[n*mdim+m]*A[p*mdim+m];
 			}
 		}
 	}
+/*
 for (int z = 0; z<mdim*mdim; z++)
 {
 	if(z%mdim==0){Rprintf("\n");}
@@ -568,7 +569,7 @@ void classForestRerF(int *mdim, int *ntest, int *nclass, int *maxcat,
                  double *pid, double *cutoff, double *countts, int *treemap,
                  int *nodestatus, int *cat, int *nodeclass, int *jts,
                  int *jet, int *bestvar, int *node, int *treeSize,
-                 int *keepPred, int *prox, double *proxMat, int *nodes, int *AHold) {
+                 int *keepPred, int *prox, double *proxMat, int *nodes, int *AHold, int *dSize) {
     int j, n, n1, n2, idxNodes, offset1, offset2, *junk, ntie;
     double crit, cmax;
 
@@ -577,11 +578,11 @@ void classForestRerF(int *mdim, int *ntest, int *nclass, int *maxcat,
     offset1 = 0;
     offset2 = 0;
     junk = NULL;
-double * rotX = (double *) S_alloc (*ntest*(*mdim), sizeof(double));//used to hold rotated data.
+double * rotX = (double *) S_alloc (*ntest*(*dSize), sizeof(double));//used to hold rotated data.
     for (j = 0; j < *ntree; ++j) {
-rotateX(*mdim, *ntest, AHold+j*(*mdim*(*mdim)), x, rotX);
+rotateX(*mdim, *dSize, *ntest, AHold+j*(*mdim*(*dSize)), x, rotX);
 		/* predict by the j-th tree */
-        predictClassTree(rotX, *ntest, *mdim, treemap + 2*idxNodes,
+        predictClassTree(rotX, *ntest, *dSize, treemap + 2*idxNodes,
 			 nodestatus + idxNodes, xbestsplit + idxNodes,
 			 bestvar + idxNodes, nodeclass + idxNodes,
 			 treeSize[j], cat, *nclass,

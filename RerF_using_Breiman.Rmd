@@ -2,11 +2,11 @@
 title: "RerF experiments on iris and breast-cancer-wisc"
 author: "James Browne"
 date: "November 15, 2016"
-output: html_document
+output: pdf
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, cache = TRUE)
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, error=FALSE, message=FALSE, cache = TRUE)
 library(randomForest)
 ```
 For all experiments-
@@ -23,6 +23,7 @@ Classifier- RF
 set.seed(71)
 data(iris)
 results = vector()
+
 for (i in 1:100){
 ind <- sample(2, nrow(iris), replace = TRUE, prob=c(0.8, 0.2))
 iris.rf <- randomForest(Species ~ ., data=iris[ind ==1,])
@@ -37,7 +38,6 @@ Classifier- RerF
 ```{r C_RerF_3_iris, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
 set.seed(71)
 data(iris)
-library(randomForest)
 results = vector()
 
 for (i in 1:100){
@@ -54,7 +54,6 @@ Classifier- RerF
 ```{r C_RerF_6_iris, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
 set.seed(71)
 data(iris)
-library(randomForest)
 results = vector()
 
 for (i in 1:100){
@@ -71,7 +70,6 @@ Classifier- RerF
 ```{r C_RerF_4_iris, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
 set.seed(71)
 data(iris)
-library(randomForest)
 results = vector()
 
 for (i in 1:100){
@@ -88,7 +86,6 @@ Classifier- RerF
 ```{r C_RerF_7_iris, echo=FALSE, warning=FALSE, error=FALSE, message=FALSE}
 set.seed(71)
 data(iris)
-library(randomForest)
 results = vector()
 
 for (i in 1:100){

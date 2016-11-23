@@ -39,7 +39,7 @@ void classForestRerF(int *mdim, int *ntest, int *nclass, int *maxcat,
                  double *pid, double *cutoff, double *countts, int *treemap,
                  int *nodestatus, int *cat, int *nodeclass, int *jts,
                  int *jet, int *bestvar, int *node, int *treeSize,
-                 int *keepPred, int *prox, double *proxMat, int *nodes, int *AHold);
+                 int *keepPred, int *prox, double *proxMat, int *nodes, int *AHold, int *dSize);
 
 void classForest(int *mdim, int *ntest, int *nclass, int *maxcat,
                  int *nrnodes, int *jbt, double *xts, double *xbestsplit,

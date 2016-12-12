@@ -122,6 +122,33 @@ percent_target = (float)target_used/(mdim*mtry);
 	{
 		AHold[mdim*mtry*jb+n] = A[n];
 	}
+
+if (jb == 10){
+	Rprintf("sample A");
+	for (int q = 0; q < mtry; q++)
+	{
+		Rprintf("\n");
+		for (int t = 0; t < mdim; t++){
+			Rprintf("%f ", A[q*mtry + t]);
+		}
+	}
+	Rprintf("\n\nFirst 5 rows of X");
+	for (int q = 0; q < 5; q++)
+	{
+		Rprintf("\n");
+		for (int t = 0; t < mdim; t++){
+			Rprintf("%f ", x[q*mdim+t]);
+		}
+	}
+	Rprintf("\n\nFirst 5 rows of XA");
+	for (int q = 0; q < 5; q++)
+	{
+		Rprintf("\n");
+		for (int t = 0; t < mtry; t++){
+			Rprintf("%f ", XA[q*mtry+t]);
+		}
+	}
+}
 	if (err_print == 1){
 		Rprintf("\n\n\n");
 		for (int q = 0; q < mtry; q++)

@@ -1,0 +1,449 @@
+---
+title: "Random Forest Experiments Using Trunk and Parity Datasets"
+author: "James Browne"
+date: "November 22, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, error=FALSE, message=FALSE, cache = TRUE)
+```
+* Each subexperiment is run according to the parameters specified.
+* non-xgboost sub-experiments are run 25 times.  xgboost sub-experiments is run 3 times.
+* after each run a test set is run through the model and an error is determined.  The error statistics are provided for each sub-experiment.
+
+**********************************************************************************
+#### Experiment 1-  Run 100 rounds.  Each round: Train using Trunk_XTrain.
+**********************************************************************************
+```{r exp1_setup, cache = FALSE}
+ptm_total <- proc.time()
+trunkX<- read.csv("~/gitRepos/old.RandomForest/Trunk/Trunk_Xtrain.dat", header=FALSE)
+trunkY<- read.csv("~/gitRepos/old.RandomForest/Trunk/Trunk_Ytrain.dat", header=FALSE)
+trunkY<- factor(data.matrix(trunkY))
+testX<- read.csv("~/gitRepos/old.RandomForest/Trunk/Trunk_Xtest.dat", header=FALSE)
+testY<- read.csv("~/gitRepos/old.RandomForest/Trunk/Trunk_Ytest.dat", header=FALSE)
+testYR <- as.numeric(unlist(testY))+1
+testY<- factor(data.matrix(testY))
+library(randomForest)
+rounds <- 100
+```
+===============================================================================
+
+##### Classifier- RF
+* mtry = mdim^.5
+* 500 trees
+  
+```{r C_RF_trunk}
+set.seed(71)
+results = vector()
+ptm <- proc.time()
+for (i in 1:rounds){
+trunk.rf <- randomForest(trunkX, trunkY, testX, testY, ntree= 500)
+results[i] <- trunk.rf$test$err.rate[trunk.rf$ntree]*100
+}
+ptm<- proc.time() - ptm
+cat(paste("average time per iteration- ", ptm[3]/rounds, " seconds"))
+summary(results)
+
+```
+===============================================================================
+
+##### Classifier- RF
+* mtry = mdim^.5
+* 1000 trees
+  
+```{r C_RF_trunk_s}
+set.seed(71)
+results = vector()
+ptm <- proc.time()
+for (i in 1:rounds){
+trunk.rf <- randomForest(trunkX, trunkY, testX, testY, ntree= 1000)
+results[i] <- trunk.rf$test$err.rate[trunk.rf$ntree]*100
+}
+ptm<- proc.time() - ptm
+cat(paste("average time per iteration- ", ptm[3]/rounds, " seconds"))
+summary(results)
+
+```
+=============================================================================
+
+##### Classifier- RerF
+* A is mdim by mdim
+* Sparse A: mdim non zero entries all of which have 50/50 chance of being 1/-1.
+* 500 trees
+* mtry = mdim^.5
+```{r C_RerF_6_trunk}
+set.seed(71)
+results = vector()
+ptm <- proc.time()
+for (i in 1:rounds){
+trunk.rf <- randomForest(trunkX, trunkY, ntree=500, RerF=6)
+test = as.numeric(predict(trunk.rf, testX, RerF=1))
+tot_wrong = 0
+
+for (m in 1:length(testYR)){
+  if (testYR[m] != test[m]){
+    tot_wrong = tot_wrong + 1
+  }
+}
+results[i] <- tot_wrong/length(testYR)*100
+}
+ptm<- proc.time() - ptm
+cat(paste("average time per iteration- ", ptm[3]/rounds, " seconds"))
+summary(results)
+```
+===============================================================================
+  
+##### Classifier- RerF
+* A is mdim by mdim
+* Sparse A: mdim non zero entries all of which have 50/50 chance of being 1/-1.
+* 1000 trees
+* mtry = mdim^.5
+```{r C_RerF_6_trunk_s}
+set.seed(71)
+results = vector()
+ptm <- proc.time()
+for (i in 1:rounds){
+trunk.rf <- randomForest(trunkX, trunkY, ntree=1000, RerF=6)
+test = as.numeric(predict(trunk.rf, testX, RerF=1))
+tot_wrong = 0
+
+for (m in 1:length(testYR)){
+  if (testYR[m] != test[m]){
+    tot_wrong = tot_wrong + 1
+  }
+}
+results[i] <- tot_wrong/length(testYR)*100
+}
+ptm<- proc.time() - ptm
+cat(paste("average time per iteration- ", ptm[3]/rounds, " seconds"))
+summary(results)
+```
+===============================================================================
+
+##### Classifier- RerF
+* A is mdim by mdim
+* Sparse A: mdim non zero entries all of which have 50/50 chance of being 1/-1.
+* 2000 trees
+* mtry = mdim^.5
+```{r C_RerF_6_trunk_s_2000}
+set.seed(71)
+results = vector()
+ptm <- proc.time()
+for (i in 1:rounds){
+trunk.rf <- randomForest(trunkX, trunkY, ntree=2000, RerF=6)
+test = as.numeric(predict(trunk.rf, testX, RerF=1))
+tot_wrong = 0
+
+for (m in 1:length(testYR)){
+  if (testYR[m] != test[m]){
+    tot_wrong = tot_wrong + 1
+  }
+}
+results[i] <- tot_wrong/length(testYR)*100
+}
+ptm<- proc.time() - ptm
+cat(paste("average time per iteration- ", ptm[3]/rounds, " seconds"))
+summary(results)
+```
+=============================================================================
+
+##### Classifier- RerF
+* A is mdim by mtry
+* Sparse A: mdim non zero entries all of which have 50/50 chance of being 1/-1.
+* 500 trees
+* mtry = mdim^.5
+```{r C_RerF_7_trunk}
+set.seed(71)
+results = vector()
+ptm <- proc.time()
+for (i in 1:rounds){
+trunk.rf <- randomForest(trunkX, trunkY, ntree=500, RerF=7)
+test = as.numeric(predict(trunk.rf, testX, RerF=1))
+tot_wrong = 0
+
+for (m in 1:length(testYR)){
+  if (testYR[m] != test[m]){
+    tot_wrong = tot_wrong + 1
+  }
+}
+results[i] <- tot_wrong/length(testYR)*100
+}
+ptm<- proc.time() - ptm
+cat(paste("average time per iteration- ", ptm[3]/rounds, " seconds"))
+summary(results)
+```
+===============================================================================
+    
+##### Classifier- RerF
+* A is mdim by mtry
+* Sparse A: mdim non zero entries all of which have 50/50 chance of being 1/-1.
+* 1000 trees
+* mtry = mdim^.5
+```{r C_RerF_7_trunk_s}
+set.seed(71)
+results = vector()
+ptm <- proc.time()
+for (i in 1:rounds){
+trunk.rf <- randomForest(trunkX, trunkY, ntree=1000, RerF=7)
+
+test = as.numeric(predict(trunk.rf, testX, RerF=1))
+tot_wrong = 0
+
+for (m in 1:length(testYR)){
+  if (testYR[m] != test[m]){
+    tot_wrong = tot_wrong + 1
+  }
+}
+results[i] <- tot_wrong/length(testYR)*100
+}
+ptm<- proc.time() - ptm
+cat(paste("average time per iteration- ", ptm[3]/rounds, " seconds"))
+summary(results)
+```
+===============================================================================
+
+##### Classifier- RerF
+* A is mdim by mtry
+* Sparse A: mdim non zero entries all of which have 50/50 chance of being 1/-1.
+* 2000 trees
+* mtry = mdim^.5
+```{r C_RerF_7_trunk_s_2000}
+set.seed(71)
+results = vector()
+ptm <- proc.time()
+for (i in 1:rounds){
+trunk.rf <- randomForest(trunkX, trunkY, ntree=2000, RerF=7)
+
+test = as.numeric(predict(trunk.rf, testX, RerF=1))
+tot_wrong = 0
+
+for (m in 1:length(testYR)){
+  if (testYR[m] != test[m]){
+    tot_wrong = tot_wrong + 1
+  }
+}
+results[i] <- tot_wrong/length(testYR)*100
+}
+ptm<- proc.time() - ptm
+cat(paste("average time per iteration- ", ptm[3]/rounds, " seconds"))
+summary(results)
+```
+===============================================================================
+
+
+**********************************************************************************
+#### Experiment 2-  Run 100 rounds.  Each round: Train using Parity_Xtrain.
+**********************************************************************************
+```{r exp2_setup, cache = FALSE}
+parityX<- read.csv("~/gitRepos/old.RandomForest/Parity/Parity_Xtrain.dat", header=FALSE)
+parityY<- read.csv("~/gitRepos/old.RandomForest/Parity/Parity_Ytrain.dat", header=FALSE)
+parityY<- factor(data.matrix(parityY))
+testX<- read.csv("~/gitRepos/old.RandomForest/Parity/Parity_Xtest.dat", header=FALSE)
+testY<- read.csv("~/gitRepos/old.RandomForest/Parity/Parity_Ytest.dat", header=FALSE)
+testYR <- as.numeric(unlist(testY))+1
+testY<- factor(data.matrix(testY))
+library(randomForest)
+```
+===============================================================================
+
+##### Classifier- RF
+* mtry = mdim^.5
+* 500 trees
+```{r C_RF_parity}
+set.seed(71)
+results = vector()
+ptm <- proc.time()
+for (i in 1:rounds){
+parity.rf <- randomForest(parityX, parityY, testX, testY, ntree=500)
+results[i] <- parity.rf$err.rate[parity.rf$ntree]*100
+}
+ptm<- proc.time() - ptm
+cat(paste("average time per iteration- ", ptm[3]/rounds, " seconds"))
+summary(results)
+```
+===============================================================================
+
+##### Classifier- RF
+* mtry = mdim^.5
+* 1000 trees
+```{r C_RF_parity_1000}
+set.seed(71)
+results = vector()
+ptm <- proc.time()
+for (i in 1:rounds){
+parity.rf <- randomForest(parityX, parityY, testX, testY, ntree=1000)
+results[i] <- parity.rf$err.rate[parity.rf$ntree]*100
+}
+ptm<- proc.time() - ptm
+cat(paste("average time per iteration- ", ptm[3]/rounds, " seconds"))
+summary(results)
+```
+===============================================================================
+
+##### Classifier- RerF
+* A is mdim by mdim
+* Sparse A: mdim non zero entries all of which have 50/50 chance of being 1/-1.
+* 500 trees
+* mtry = mdim^.5
+```{r C_RerF_6_parity}
+set.seed(71)
+results = vector()
+ptm <- proc.time()
+for (i in 1:rounds){
+parity.rf <- randomForest(parityX, parityY, ntree=500, RerF=6)
+
+test = as.numeric(predict(parity.rf, testX, RerF=1))
+tot_wrong = 0
+
+for (m in 1:length(testYR)){
+  if (testYR[m] != test[m]){
+    tot_wrong = tot_wrong + 1
+  }
+}
+results[i] <- tot_wrong/length(testYR)*100
+
+}
+ptm<- proc.time() - ptm
+cat(paste("average time per iteration- ", ptm[3]/rounds, " seconds"))
+summary(results)
+```
+===============================================================================
+
+##### Classifier- RerF
+* A is mdim by mdim
+* Sparse A: mdim non zero entries all of which have 50/50 chance of being 1/-1.
+* 1000 trees
+* mtry = mdim^.5
+```{r C_RerF_6_parity_1000}
+set.seed(71)
+results = vector()
+ptm <- proc.time()
+for (i in 1:rounds){
+parity.rf <- randomForest(parityX, parityY, ntree=1000, RerF=6)
+
+test = as.numeric(predict(parity.rf, testX, RerF=1))
+tot_wrong = 0
+
+for (m in 1:length(testYR)){
+  if (testYR[m] != test[m]){
+    tot_wrong = tot_wrong + 1
+  }
+}
+results[i] <- tot_wrong/length(testYR)*100
+
+}
+ptm<- proc.time() - ptm
+cat(paste("average time per iteration- ", ptm[3]/rounds, " seconds"))
+summary(results)
+```
+===============================================================================
+
+##### Classifier- RerF
+* A is mdim by mtry
+* Sparse A: mdim non zero entries all of which have 50/50 chance of being 1/-1.
+* 500 trees
+* mtry = mdim^.5
+```{r C_RerF_7_parity}
+set.seed(71)
+
+results = vector()
+ptm <- proc.time()
+for (i in 1:rounds){
+parity.rf <- randomForest(parityX, parityY, ntree=500, RerF=7)
+test = as.numeric(predict(parity.rf, testX, RerF=1))
+tot_wrong = 0
+
+for (m in 1:length(testYR)){
+  if (testYR[m] != test[m]){
+    tot_wrong = tot_wrong + 1
+  }
+}
+results[i] <- tot_wrong/length(testYR)*100
+}
+ptm<- proc.time() - ptm
+cat(paste("average time per iteration- ", ptm[3]/rounds, " seconds"))
+summary(results)
+ptm_total<- proc.time() - ptm
+cat(paste("total time- ", ptm_total[3], " seconds"))
+```
+===============================================================================
+
+##### Classifier- RerF
+* A is mdim by mtry
+* Sparse A: mdim non zero entries all of which have 50/50 chance of being 1/-1.
+* 1000 trees
+* mtry = mdim^.5
+```{r C_RerF_7_parity_1000}
+set.seed(71)
+
+results = vector()
+ptm <- proc.time()
+for (i in 1:rounds){
+parity.rf <- randomForest(parityX, parityY, ntree=1000, RerF=7)
+test = as.numeric(predict(parity.rf, testX, RerF=1))
+tot_wrong = 0
+
+for (m in 1:length(testYR)){
+  if (testYR[m] != test[m]){
+    tot_wrong = tot_wrong + 1
+  }
+}
+results[i] <- tot_wrong/length(testYR)*100
+}
+ptm<- proc.time() - ptm
+cat(paste("average time per iteration- ", ptm[3]/rounds, " seconds"))
+summary(results)
+ptm_total<- proc.time() - ptm
+cat(paste("total time- ", ptm_total[3], " seconds"))
+```
+===============================================================================
+
+**********************************************************************************
+#### Experiment 3-  Run 10 rounds, 5000 trees each, on Trunk_Xtrain.  Plot error as tree number increases.
+**********************************************************************************
+
+##### Classifier- RerF
+* A is mdim by mdim
+```{r C_RerF_6_trunk_s_5000}
+trunkX<- read.csv("~/gitRepos/old.RandomForest/Trunk/Trunk_Xtrain.dat", header=FALSE)
+trunkY<- read.csv("~/gitRepos/old.RandomForest/Trunk/Trunk_Ytrain.dat", header=FALSE)
+trunkY<- factor(data.matrix(trunkY))
+testX<- read.csv("~/gitRepos/old.RandomForest/Trunk/Trunk_Xtest.dat", header=FALSE)
+testY<- read.csv("~/gitRepos/old.RandomForest/Trunk/Trunk_Ytest.dat", header=FALSE)
+testYR <- as.numeric(unlist(testY))+1
+testY<- factor(data.matrix(testY))
+library(randomForest)
+set.seed(71)
+results = vector()
+df <- NULL
+ptm <- proc.time()
+for (i in 1:10){
+trunk.rf <- randomForest(trunkX, trunkY, ntree=5000, RerF=6)
+
+for (q in 1:5000){
+trunk.rf$ntree = q
+test = as.numeric(predict(trunk.rf, testX, RerF=1))
+tot_wrong = 0
+for (m in 1:length(testYR)){
+  if (testYR[m] != test[m]){
+    tot_wrong = tot_wrong + 1
+  }
+}
+results[q] <- tot_wrong/length(testYR)*100
+}
+df[[i]] <- results
+}
+for (z in 1:10){
+plot(as.numeric(unlist(df[z])))
+}
+ptm<- proc.time() - ptm
+cat(paste("average time per iteration- ", ptm[3]/10, " seconds"))
+```
+=============================================================================
+
+
+```{r finish}
+ptm_total<- proc.time() - ptm
+cat(paste("total time- ", ptm_total[3], " seconds"))
+```

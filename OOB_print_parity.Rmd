@@ -1,0 +1,81 @@
+---
+title: "Random Forest Parity Datasets"
+author: "James Browne"
+date: "November 27, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, error=FALSE, message=TRUE, cache = FALSE)
+```
+
+**********************************************************************************
+#### Experiment 1-  10000 trees Parity_Xtrain.  Plot error as tree number increases.  Mtry = mdim^.5, the number of variables in the dataset.
+**********************************************************************************
+
+##### Classifier- RerF
+
+```{r C_RerF_6__s_5000}
+parityX<- read.csv("~/gitRepos/old.RandomForest/Parity/Parity_Xtrain.dat", header=FALSE)
+parityY<- read.csv("~/gitRepos/old.RandomForest/Parity/Parity_Ytrain.dat", header=FALSE)
+parityY<- factor(data.matrix(parityY))
+testX<- read.csv("~/gitRepos/old.RandomForest/Parity/Parity_Xtest.dat", header=FALSE)
+testY<- read.csv("~/gitRepos/old.RandomForest/Parity/Parity_Ytest.dat", header=FALSE)
+testYR <- as.numeric(unlist(testY))+1
+testY<- factor(data.matrix(testY))
+
+library(randomForest)
+set.seed(65)
+results = vector()
+df <- NULL
+ptm <- proc.time()
+parity.rf <- randomForest(parityX, parityY, ntree=10000, RerF=6)
+x <- seq(1:length(parity.rf$err.rate[,1]))
+plot(x, parity.rf$err.rate[,1], type = "l", main = "Parity, mdim by mdim, mtry = mdim^.5")
+ptm<- proc.time() - ptm
+cat(paste("elapsed time- ", ptm[3], " seconds"))
+
+set.seed(65)
+results = vector()
+df <- NULL
+ptm <- proc.time()
+parity.rf <- randomForest(parityX, parityY, ntree=10000, RerF=7)
+x <- seq(1:length(parity.rf$err.rate[,1]))
+plot(x, parity.rf$err.rate[,1], type = "l", main = "Parity, mdim by mtry, mtry = mdim^.5")
+ptm<- proc.time() - ptm
+cat(paste("elapsed time- ", ptm[3], " seconds"))
+
+results = vector()
+df <- NULL
+ptm <- proc.time()
+
+
+```
+
+**********************************************************************************
+#### Experiment 2-  10000 trees Parity_Xtrain.  Plot error as tree number increases.  Mtry = 3, the number of variables in the dataset.  Plots should be identical.
+**********************************************************************************
+
+##### Classifier- RerF
+
+```{r C_RerF_6_trunk_s_5000}
+set.seed(65)
+results = vector()
+df <- NULL
+ptm <- proc.time()
+parity.rf <- randomForest(parityX, parityY, ntree=10000, mtry = 3, RerF=6)
+x <- seq(1:length(parity.rf$err.rate[,1]))
+plot(x, parity.rf$err.rate[,1], type = "l", main = "Parity, mdim by mdim, mtry = mdim")
+ptm<- proc.time() - ptm
+cat(paste("elapsed time- ", ptm[3], " seconds"))
+
+set.seed(65)
+results = vector()
+df <- NULL
+ptm <- proc.time()
+parity.rf <- randomForest(parityX, parityY, ntree=10000, mtry = 3, RerF=7)
+x <- seq(1:length(parity.rf$err.rate[,1]))
+plot(x, parity.rf$err.rate[,1], type = "l", main = "Parity, mdim by mtry, mtry = mdim")
+ptm<- proc.time() - ptm
+cat(paste("elapsed time- ", ptm[3], " seconds"))
+```

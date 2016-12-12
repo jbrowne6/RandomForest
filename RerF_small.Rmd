@@ -1,0 +1,51 @@
+---
+title: "Random Forest Experiments Using Trunk and Parity Datasets"
+author: "James Browne"
+date: "November 22, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, error=FALSE, message=FALSE, cache = TRUE)
+```
+
+**********************************************************************************
+#### Experiment 3-  Run 10 rounds, 5000 trees each, on Trunk_Xtrain.  Plot error as tree number increases.
+**********************************************************************************
+
+##### Classifier- RerF
+* A is mdim by mdim
+```{r C_RerF_6_trunk_s_5000}
+trunkX<- read.csv("~/gitRepos/old.RandomForest/Trunk/Trunk_Xtrain.dat", header=FALSE)
+trunkY<- read.csv("~/gitRepos/old.RandomForest/Trunk/Trunk_Ytrain.dat", header=FALSE)
+trunkY<- factor(data.matrix(trunkY))
+testX<- read.csv("~/gitRepos/old.RandomForest/Trunk/Trunk_Xtest.dat", header=FALSE)
+testY<- read.csv("~/gitRepos/old.RandomForest/Trunk/Trunk_Ytest.dat", header=FALSE)
+testYR <- as.numeric(unlist(testY))+1
+testY<- factor(data.matrix(testY))
+library(randomForest)
+set.seed(71)
+results = vector()
+df <- NULL
+ptm <- proc.time()
+
+trunk.rf <- randomForest(trunkX, trunkY, ntree=2000, RerF=6)
+
+for (q in 1:2000){
+trunk.rf$ntree = q
+test = as.numeric(predict(trunk.rf, testX, RerF=1))
+tot_wrong = 0
+for (m in 1:length(testYR)){
+  if (testYR[m] != test[m]){
+    tot_wrong = tot_wrong + 1
+  }
+}
+results[q] <- tot_wrong/length(testYR)*100
+}
+results
+df[[1]] <- results
+plot(as.numeric(unlist(df[1])))
+
+ptm<- proc.time() - ptm
+cat(paste("average time per iteration- ", ptm[3], " seconds"))
+```

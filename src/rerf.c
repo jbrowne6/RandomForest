@@ -177,6 +177,7 @@ varUsed = (int *) S_alloc (mdim, sizeof (int));
 	if (stratify)
 	{
 		/* Count number of strata and frequency of each stratum. */
+	Rprintf("it is stratify\n.");
 		nstrata = 0;
 		for (n = 0; n < nsample0; ++n)
 			if (strata[n] > nstrata)
@@ -202,6 +203,7 @@ varUsed = (int *) S_alloc (mdim, sizeof (int));
 	}
 	else
 	{
+	Rprintf("it is not stratify\n.");
 		nind = replace ? NULL : (int *) S_alloc (nsample, sizeof (int));
 	}
 

@@ -123,7 +123,7 @@ percent_target = (float)target_used/(mdim*mtry);
 		AHold[mdim*mtry*jb+n] = A[n];
 	}
 
-if (jb == 10){
+/*if (jb == 10){
 	Rprintf("sample A");
 	for (int q = 0; q < mtry; q++)
 	{
@@ -148,7 +148,7 @@ if (jb == 10){
 			Rprintf("%f ", XA[q*mtry+t]);
 		}
 	}
-}
+}*/
 	if (err_print == 1){
 		Rprintf("\n\n\n");
 		for (int q = 0; q < mtry; q++)

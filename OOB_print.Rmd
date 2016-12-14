@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning=FALSE, error=FALSE, message=FALSE, cache = TRUE)
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, error=FALSE, message=FALSE, cache = FALSE)
 ```
 
 **********************************************************************************
@@ -29,7 +29,7 @@ results = vector()
 df <- NULL
 ptm <- proc.time()
 
-trunk.rf <- randomForest(trunkX, trunkY, ntree=10000, RerF=6)
+trunk.rf <- randomForest(trunkX, trunkY, ntree=256, RerF=6)
 x <- seq(1:length(trunk.rf$err.rate[,1]))
 
 plot(x, trunk.rf$err.rate[,1], type = "l")

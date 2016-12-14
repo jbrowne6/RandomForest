@@ -23,6 +23,7 @@
 
 #include <R.h>
 #include <R_ext/Utils.h>
+#include <omp.h>
 #include "rf.h"
 void oob (int nsample, int nclass, int *cl, int *jtr, int *jerr,
 		int *counttr, int *out, double *errtr, int *jest, double *cutoff);
@@ -87,18 +88,14 @@ RerRF (double *x, int *dimx, int *cl, int *ncl, int *cat, int *maxcat,
 	int nsample0, mdim, nclass, addClass, mtry, ntest, nsample, ndsize,
 		mimp, nimp, near, nuse, noutall, nrightall, nrightimpall,
 		keepInbag, nstrata;
-	int jb, j, n, m, k, idxByNnode, idxByNsample, imp, localImp, iprox, oobprox, keepf, replace, stratify, trace, *nright, *nrightimp, *nout, *nclts, Ntree, rerf;	//added rerf for randomerForest
+	int jb, j, n, m, k, idxByNnode, idxByNsample, imp, localImp, iprox, oobprox, keepf, replace, stratify, trace, *nright, *nclts, Ntree, rerf;	//added rerf for randomerForest
 
-	int *out, *bestsplitnext, *bestsplit, *nodepop, *jin, *nodex,
-		*nodexts, *nodestart, *ta, *ncase, *jerr, *varUsed,
-		*jtr, *classFreq, *idmove, *jvr,
-		*at, *a, *b, *mind, *nind, *jts, *oobpair;
+	int 	*nind, *oobpair;
+
+	//next line unchanged
 	int **strata_idx, *strata_size, last, ktmp, nEmpty, ntry;
-
+	//next line unchanged
 	double av = 0.0, delta = 0.0;
-
-	double *tgini, *tx, *wl, *classpop, *tclasscat, *tclasspop, *win, *tp, *wr, *XA;	//added randomize_x for randomerForest
-
 	addClass = Options[0];
 	imp = Options[1];
 	localImp = Options[2];
@@ -112,7 +109,7 @@ RerRF (double *x, int *dimx, int *cl, int *ncl, int *cat, int *maxcat,
 	mdim = dimx[0];
 
 	int mdim_hold = mdim; //needed to set mdim back after creating XA.
-//mdim = *dSize;
+	//mdim = *dSize;
 	nsample0 = dimx[1];
 	nclass = (*ncl == 1) ? 2 : *ncl;
 	ndsize = *nodesize;
@@ -126,42 +123,44 @@ RerRF (double *x, int *dimx, int *cl, int *ncl, int *cat, int *maxcat,
 	near = iprox ? nsample0 : 1;
 	if (trace == 0)
 		trace = Ntree + 1;
+	//Adding extra
 
-		wl = (double *) S_alloc (nclass, sizeof (double));
-	wr = (double *) S_alloc (nclass, sizeof (double));
-	classpop = (double *) S_alloc (nclass * *nrnodes, sizeof (double));
-	tclasscat = (double *) S_alloc (nclass * MAX_CAT, sizeof (double));
-	tclasspop = (double *) S_alloc (nclass, sizeof (double));
-	tx = (double *) S_alloc (nsample, sizeof (double));
-	win = (double *) S_alloc (nsample, sizeof (double));
-	tp = (double *) S_alloc (nsample, sizeof (double));
+	double wl[nclass * sizeof (double)];
+	double wr[nclass * sizeof (double)];
+	double classpop[nclass * (*nrnodes) * sizeof (double)];
+	double tclasscat[nclass * MAX_CAT * sizeof (double)];
+	double tclasspop[nclass * sizeof (double)];
+	double tx[nsample * sizeof (double)];
+	double win[nsample * sizeof (double)];
+	double tp[nsample * sizeof (double)];
 
-	out = (int *) S_alloc (nsample, sizeof (int));
-	bestsplitnext = (int *) S_alloc (*nrnodes, sizeof (int));
-	bestsplit = (int *) S_alloc (*nrnodes, sizeof (int));
-	nodepop = (int *) S_alloc (*nrnodes, sizeof (int));
-	nodestart = (int *) S_alloc (*nrnodes, sizeof (int));
-	jin = (int *) S_alloc (nsample, sizeof (int));
-	nodex = (int *) S_alloc (nsample, sizeof (int));
-	nodexts = (int *) S_alloc (ntest, sizeof (int));
-	ta = (int *) S_alloc (nsample, sizeof (int));
-	ncase = (int *) S_alloc (nsample, sizeof (int));
-	jerr = (int *) S_alloc (nsample, sizeof (int));
-		jtr = (int *) S_alloc (nsample, sizeof (int));
-	jvr = (int *) S_alloc (nsample, sizeof (int));
-	classFreq = (int *) S_alloc (nclass, sizeof (int));
-	jts = (int *) S_alloc (ntest, sizeof (int));
-	idmove = (int *) S_alloc (nsample, sizeof (int));
+	int out[nsample * sizeof (int)];
+	int bestsplitnext[*nrnodes * sizeof (int)];
+	int bestsplit[(*nrnodes)* sizeof (int)];
+	int nodepop[(*nrnodes) * sizeof (int)];
+	int nodestart[(*nrnodes) * sizeof (int)];
+	int jin [nsample * sizeof (int)];
+	int nodex[nsample * sizeof (int)];
+	int nodexts[ntest * sizeof (int)];
+	int ta[nsample * sizeof (int)];
+	int ncase[nsample* sizeof (int)];
+	int jerr[nsample * sizeof (int)];
+	int jtr[nsample * sizeof (int)];
+	int jvr[nsample * sizeof (int)];
+	int classFreq[nclass * sizeof (int)];
+	int jts[ntest * sizeof (int)];
+	int idmove[nsample * sizeof (int)];
 
-at = (int *) S_alloc (mdim * nsample, sizeof (int));
-	XA =(double *) S_alloc (mdim * nsample, sizeof (double));	//added for randomerForest
-	a = (int *) S_alloc (mdim * nsample, sizeof (int));
-	b = (int *) S_alloc (mdim * nsample, sizeof (int));
-	mind = (int *) S_alloc (mdim, sizeof (int));
-tgini = (double *) S_alloc (mdim, sizeof (double));
-varUsed = (int *) S_alloc (mdim, sizeof (int));
-	nrightimp = (int *) S_alloc (nclass, sizeof (int));
-	nout = (int *) S_alloc (nclass, sizeof (int));
+	int at[mdim * nsample * sizeof (int)];
+	double XA[mdim * nsample * sizeof (double)];	//added for randomerForest
+	int a [mdim * nsample * sizeof (int)];
+	int b[mdim * nsample * sizeof (int)];
+	int mind[mdim * sizeof (int)];
+	double tgini[mdim * sizeof (double)];
+	int varUsed[mdim * sizeof (int)];
+	int nrightimp[nclass * sizeof (int)];
+	int nout[nclass * sizeof (int)];
+
 	if (oobprox)
 	{
 		oobpair = (int *) S_alloc (near * near, sizeof (int));
@@ -177,7 +176,7 @@ varUsed = (int *) S_alloc (mdim, sizeof (int));
 	if (stratify)
 	{
 		/* Count number of strata and frequency of each stratum. */
-	Rprintf("it is stratify\n.");
+		Rprintf("it is stratify\n.");
 		nstrata = 0;
 		for (n = 0; n < nsample0; ++n)
 			if (strata[n] > nstrata)
@@ -203,10 +202,9 @@ varUsed = (int *) S_alloc (mdim, sizeof (int));
 	}
 	else
 	{
-	Rprintf("it is not stratify\n.");
+		Rprintf("it is not stratify\n.");
 		nind = replace ? NULL : (int *) S_alloc (nsample, sizeof (int));
 	}
-
 	/*    INITIALIZE FOR RUN */
 	if (*testdat)
 		zeroDouble (countts, ntest * nclass);
@@ -256,13 +254,34 @@ varUsed = (int *) S_alloc (mdim, sizeof (int));
 		Rprintf ("\n");
 	}
 
+	//#pragma omp parallel for schedule(static) ordered
+	//	for(int w = 0; w < 10; w++)
+	//	{
+	//		Rprintf("I am thread %d, processing %d.\n", omp_get_thread_num(), w);
+	//#pragma omp ordered
+	//		Rprintf("I am thread %d, processing %d.\n", omp_get_thread_num(), w);
+	//	}
+
 	if (rerf == 0){  //if rerf = 0 then just do normal random forest.
 		makeA (x, mdim, nsample, cat, at, b);	//moved for randomerForest
 	}
 	idxByNnode = 0;
 	idxByNsample = 0;
+	/*
+	   private(tclasscat, tp, wr, wl, tx, out, ta, nodexts, nodex, idmove, jts, classFreq, jvr, jtr, jerr, mind, nout, nrightimp, XA, a, b, cl, nuse, ncase, jin, varUsed, tclasspop, win, ktmp, k, j, n, nind, nEmpty, ntry, bestsplit, bestsplitnext, tgini, nodepop, nodestart, classpop)
+	   */
+
+	omp_set_num_threads(1);
+#pragma omp parallel for schedule(static, 1) private(idxByNnode, idxByNsample, tclasscat, tp, wr, wl, tx, ta, nodexts, nodex, idmove, jts, classFreq, jvr, jtr, jerr, mind, nout, noutall, nrightimp, XA, a, b, win, nuse, ncase, jin, varUsed, tclasspop, ktmp, k, j, n, nind, nEmpty, ntry, bestsplit, bestsplitnext, nodepop, nodestart, classpop)
+
 	for (jb = 0; jb < Ntree; jb++)
 	{
+		if (keepf)
+			idxByNnode = *nrnodes * jb;
+		if (keepInbag)
+			idxByNsample = nsample0 * jb;
+		//		Rprintf("idxByNnode=%d and idxByNsample=%d, nrnodes=%d\n.", idxByNnode, idxByNsample, *nrnodes);
+//Rprintf("here it is03 thread- %d.\n", omp_get_thread_num());
 		if (rerf > 0){
 			if (rerf == 3 || rerf == 6 || rerf == 20)//just used to test when mdim == mtry.
 			{
@@ -273,21 +292,24 @@ varUsed = (int *) S_alloc (mdim, sizeof (int));
 				randx(x, XA, mdim_hold, nsample, *dSize, rerf, AHold, jb);	//added for randomerForest
 				mdim = mtry;
 			}else if (rerf == 5 || rerf == 8)
-{
-	randx(x, XA, mdim_hold, nsample, *dSize, rerf, AHold, jb);	//added for randomerForest
-	//			mdim = mdim*2;
+			{
+				randx(x, XA, mdim_hold, nsample, *dSize, rerf, AHold, jb);	//added for randomerForest
+				//			mdim = mdim*2;
 
-}
-
-			makeA (XA, mdim, nsample, cat, at, b);	//moved for randomerForest
-
-/*			for (int z = 0; z< mdim*mdim; z++){
-if (z%mdim == 0){
-					Rprintf("\n");}
-				Rprintf("%d ", AHold[jb*mdim*mdim+z]);
 			}
-Rprintf(" test\n");*/
 		}
+
+		//		makeA (XA, mdim, nsample, cat, at, b);	//moved for randomerForest
+		//		memcpy (a, at, sizeof (int) * mdim * nsample);
+		makeA (XA, mdim, nsample, cat, a, b);	//moved
+
+		/*			for (int z = 0; z< mdim*mdim; z++){
+					if (z%mdim == 0){
+					Rprintf("\n");}
+					Rprintf("%d ", AHold[jb*mdim*mdim+z]);
+					}
+					Rprintf(" test\n");*/
+
 		/* Do we need to simulate data for the second class? */
 
 		if (addClass)
@@ -360,6 +382,7 @@ Rprintf(" test\n");*/
 					zeroDouble (win, nsample);
 					if (replace)
 					{
+
 						for (n = 0; n < *sampsize; ++n)
 						{
 							k = unif_rand () * nsample;
@@ -370,6 +393,7 @@ Rprintf(" test\n");*/
 					}
 					else
 					{
+
 						for (n = 0; n < nsample; ++n)
 							nind[n] = n;
 						last = nsample - 1;
@@ -391,6 +415,7 @@ Rprintf(" test\n");*/
 							nEmpty++;
 					}
 					ntry++;
+
 				}
 				while (nclass - nEmpty < 2 && ntry <= 30);
 				/* If there are still fewer than two classes in the data, throw an error. */
@@ -407,9 +432,7 @@ Rprintf(" test\n");*/
 					inbag[n + idxByNsample] = jin[n];
 				}
 			}
-
 			/* Copy the original a matrix back. */
-			memcpy (a, at, sizeof (int) * mdim * nsample);
 			modA (a, &nuse, nsample, mdim, cat, *maxcat, ncase, jin);
 
 			F77_CALL (buildtree) (a, b, cl, cat, maxcat, &mdim, &nsample,
@@ -424,9 +447,7 @@ Rprintf(" test\n");*/
 					mind);
 			/* if the "tree" has only the root node, start over */
 
-		}
-
-		while (ndbigtree[jb] == 1);
+		}while (ndbigtree[jb] == 1);
 
 		Xtranslate (XA, mdim, *nrnodes, nsample, bestvar + idxByNnode,
 				bestsplit, bestsplitnext, xbestsplit + idxByNnode,
@@ -453,6 +474,7 @@ Rprintf(" test\n");*/
 
 		zeroInt (nout, nclass);
 		noutall = 0;
+
 		for (n = 0; n < nsample; ++n)
 		{
 			if (jin[n] == 0)
@@ -519,6 +541,7 @@ Rprintf(" test\n");*/
 		/*  DO VARIABLE IMPORTANCE  */
 		if (imp)
 		{
+
 			nrightall = 0;
 			/* Count the number of correct prediction by the current tree
 			   among the OOB samples, by class. */
@@ -600,17 +623,19 @@ Rprintf(" test\n");*/
 			}
 		}
 
-		R_CheckUserInterrupt ();
+//		R_CheckUserInterrupt ();
 #ifdef WIN32
 		R_ProcessEvents ();
 #endif
-		if (keepf)
-			idxByNnode += *nrnodes;
-		if (keepInbag)
-			idxByNsample += nsample0;
+		//			if (keepf)
+		//			idxByNnode += *nrnodes;
+		//			if (keepInbag)
+		//			idxByNsample += nsample0;
 
-	//	mdim = mdim_hold; //reset mdim every iteration so that randx can recreate XA every time.
+		//	mdim = mdim_hold; //reset mdim every iteration so that randx can recreate XA every time.
+
 	}
+
 	PutRNGstate ();
 
 	/*  Final processing of variable importance. */

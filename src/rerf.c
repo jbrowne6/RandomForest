@@ -271,7 +271,7 @@ RerRF (double *x, int *dimx, int *cl, int *ncl, int *cat, int *maxcat,
 	   private(tclasscat, tp, wr, wl, tx, out, ta, nodexts, nodex, idmove, jts, classFreq, jvr, jtr, jerr, mind, nout, nrightimp, XA, a, b, cl, nuse, ncase, jin, varUsed, tclasspop, win, ktmp, k, j, n, nind, nEmpty, ntry, bestsplit, bestsplitnext, tgini, nodepop, nodestart, classpop)
 	   */
 
-	omp_set_num_threads(1);
+	omp_set_num_threads(4);
 #pragma omp parallel for schedule(static, 1) private(idxByNnode, idxByNsample, tclasscat, tp, wr, wl, tx, ta, nodexts, nodex, idmove, jts, classFreq, jvr, jtr, jerr, mind, nout, noutall, nrightimp, XA, a, b, win, nuse, ncase, jin, varUsed, tclasspop, ktmp, k, j, n, nind, nEmpty, ntry, bestsplit, bestsplitnext, nodepop, nodestart, classpop)
 
 	for (jb = 0; jb < Ntree; jb++)
@@ -281,7 +281,7 @@ RerRF (double *x, int *dimx, int *cl, int *ncl, int *cat, int *maxcat,
 		if (keepInbag)
 			idxByNsample = nsample0 * jb;
 		//		Rprintf("idxByNnode=%d and idxByNsample=%d, nrnodes=%d\n.", idxByNnode, idxByNsample, *nrnodes);
-//Rprintf("here it is03 thread- %d.\n", omp_get_thread_num());
+//Rprintf("here it is15 thread- %d.\n", omp_get_thread_num());
 		if (rerf > 0){
 			if (rerf == 3 || rerf == 6 || rerf == 20)//just used to test when mdim == mtry.
 			{
@@ -432,6 +432,7 @@ RerRF (double *x, int *dimx, int *cl, int *ncl, int *cat, int *maxcat,
 					inbag[n + idxByNsample] = jin[n];
 				}
 			}
+
 			/* Copy the original a matrix back. */
 			modA (a, &nuse, nsample, mdim, cat, *maxcat, ncase, jin);
 

@@ -233,9 +233,12 @@ void modA(int *a, int *nuse, const int nsample, const int mdim,
 		if (cat[i] == 1) {
 			for (j = 0; j < nsample; ++j) {
 				if (jin[a[i + k * mdim] - 1]) {
+//Rprintf("here it is37b thread- %d.\n", omp_get_thread_num());
 					a[i + nt * mdim] = a[i + k * mdim];
+//Rprintf("here it is37c thread- %d.\n", omp_get_thread_num());
 					k++;
 				} else {
+//Rprintf("here it is37d thread- %d.\n", omp_get_thread_num());
 					for (m = 0; m < nsample - k; ++m) {
 						if (jin[a[i + (k + m) * mdim] - 1]) {
 							a[i + nt * mdim] = a[i + (k + m) * mdim];
@@ -244,6 +247,7 @@ void modA(int *a, int *nuse, const int nsample, const int mdim,
 						}
 					}
 				}
+
 				nt++;
 				if (nt >= *nuse) break;
 			}

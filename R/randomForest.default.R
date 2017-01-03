@@ -4,7 +4,7 @@ mylevels <- function(x) if (is.factor(x)) levels(x) else 0
 "randomForest.default" <-
     function(x, y=NULL,  xtest=NULL, ytest=NULL, ntree=500,
              mtry=if (!is.null(y) && !is.factor(y))
-             max(floor(ncol(x)/3), 1) else floor(sqrt(ncol(x))),
+             max(round(ncol(x)/3), 1) else round(sqrt(ncol(x))),
              replace=TRUE, classwt=NULL, cutoff, strata,
              sampsize = if (replace) nrow(x) else ceiling(.632*nrow(x)),
              nodesize = if (!is.null(y) && !is.factor(y)) 5 else 1,
@@ -26,7 +26,6 @@ mylevels <- function(x) if (is.factor(x)) levels(x) else 0
     if (n == 0) stop("data (x) has 0 rows")
     x.row.names <- rownames(x)
     x.col.names <- if (is.null(colnames(x))) 1:ncol(x) else colnames(x)
-
     ## overcome R's lazy evaluation:
     keep.forest <- keep.forest
 
@@ -158,6 +157,7 @@ mylevels <- function(x) if (is.factor(x)) levels(x) else 0
 
     nsample <- if (addclass) 2 * n else n
     Stratify <- length(sampsize) > 1
+	cat(length(sampsize))
     if ((!Stratify) && sampsize > nrow(x)) stop("sampsize too large")
     if (Stratify && (!classRF)) stop("sampsize should be of length one")
     if (classRF) {
@@ -208,6 +208,8 @@ mylevels <- function(x) if (is.factor(x)) levels(x) else 0
     }
     nt <- if (keep.forest) ntree else 1
 	if(dSize==0){dSize<-p}## if dSize == 0 then set it equal to Mdim.
+	if(mtry==2) {warning("mtry is 2")}
+	if(mtry==1) {warning("mtry is 1")}
 ###############################################################
 ###  Expanded selection of random forest algorithm: classRF, regRF, rerfRF
 ###############################################################
